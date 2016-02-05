@@ -15,7 +15,9 @@ There are a couple command line arguments if you want to use them, I will probab
 Project M 3.6 support is achieved by through slightly modifying the given GCT. If the builder detects that you are using a 3.6+ GCT file, it will ask if you want to attempt to fix known problem codes. The first code that is changed is the stock icons code. I don't know why the code caused a lockup at startup, but I just have it set up to modify that code to what the netplay build uses, which seems to work fine. Alternate stage support is achieved through my own mod of the SD loader code, where instead of trying to load from SD, it tries to load from disc. Unfortunately, I found that if the alternate stage is larger than the normal stage, it will crash, so to solve this I just set up the builder to pad the default stage files to be the same size as their largest alternate stage. While not the most elegant solution, it works.
 
 ## Other notes
-If you are experiencing issues, make sure that you either don't have an SD card inserted, or your SD card doesn't have any mod files on it, as mods will still try to read from the SD before reading from the disc (unless you are on P:M 3.6 and told the builder to fix problem codes, and even then, some files are still loaded from SD).
+If you are experiencing issues when playing the output ISO, make sure that you either don't have an SD card inserted, or your SD card doesn't have any mod files on it, as mods will still try to read from the SD before reading from the disc (unless you are on P:M 3.6 and told the builder to fix problem codes, and even then, some files are still loaded from SD).
+
+If you are building this from source, remember to copy the Resources folder from the base directory into the same directory as the exe file, or else nothing will work.
 
 ## Credits
 First of all thanks to Wiimm for his amazing wit tool, which is used to extract, patch, and build the game images.  

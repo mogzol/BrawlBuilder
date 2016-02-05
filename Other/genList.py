@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# This is what I used to generate the BrawlFileList.txt file.
+# Give it a folder and it will walk through it and write filenames and sizes to a txt file.
+
 import xml.sax
 import sys
 import os
