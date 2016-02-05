@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BrawlBuilder
@@ -146,8 +143,6 @@ namespace BrawlBuilder
 
 			if (File.Exists(@".\Resources\ProjM36Patches.txt"))
 			{
-				bool asked = false;
-
 				// First we'll read the patches we are going to make
 				string[] actions = { "CHECK", "REMOVE", "PATCH", "TO" };
 				string action = "";
@@ -257,8 +252,6 @@ namespace BrawlBuilder
 						_pm36patches = true;
 					else
 						return true;
-
-					asked = true;
 				}
 				else
 				{
@@ -296,7 +289,7 @@ namespace BrawlBuilder
 					}
 				}
 
-				if (asked && (successfulRemoves < remove.Count || successfulPatches < patch.Count))
+				if (successfulRemoves < remove.Count || successfulPatches < patch.Count)
 					MessageBox.Show("There were issues fixing known problem codes:\n\nRemoved codes: " + successfulRemoves + "/" + remove.Count + "\nPatched Codes: " + successfulPatches + "/" + patch.Count + "\n\nThere may be issues with the output ISO.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
 				File.WriteAllBytes(@".\Resources\temp.gct", gctBytes);
