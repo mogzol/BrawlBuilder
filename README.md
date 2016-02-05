@@ -2,7 +2,7 @@
 The Ultimate Super Smash Bros Brawl ISO Builder
 
 ## About
-This is a tool to build modded SSBB ISOs. As far as I know, it should work with pretty much any Brawl mod, the only ones that may cause issues are Project M 3.6 and above. Currently, vanilla P:M 3.6 works, including alternate stages, as do many 3.6-based mods. Legacy M 1.21 does not currently work, and I assume that some of the other more complex 3.6-based mods also won't work.
+This is a tool to build modded SSBB ISOs. As far as I know, it should work with pretty much any Brawl mod, the only ones that may cause issues are Project M 3.6 and above. Currently, vanilla P:M 3.6 works, including alternate stages, as do many 3.6-based mods. 3.61 Community Complete also works, if you're into that sort of thing. Legacy M 1.21 does not currently work, and I assume that some of the other more complex 3.6-based mods also won't work.
 
 ## Command line arguments
 There are a couple command line arguments if you want to use them, I will probably add more in the future.
