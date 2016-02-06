@@ -332,7 +332,7 @@
 			this.Opacity = 0D;
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "The Ultimate Brawl ISO Builder";
+			this.Text = "BrawlBuilder - The Ultimate Brawl ISO Builder";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BrawlBuilder_FormClosing);
 			this.Shown += new System.EventHandler(this.Form1_Shown);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
