@@ -1,0 +1,120 @@
+### This file contains patches that get applied to the GCT file.
+###
+### Description of statement blocks: 
+###   REMOVE blocks will remove all occurences of their code from the GCT
+###   PATCH/TO blocks will replace all occurences of the PATCH code with the TO code
+###   IF/ENDIF sections will only apply the codes inside them if the IF code exists
+###
+### Note: All blocks (except for PATCH, which can be followed immediately by TO) must
+###       have at least one blank (or commented) line after them.
+
+# Individual Stock Icons fix, solves P:M 3.6 not booting.
+REMOVE
+044218EC 00095F00
+0442190C 00180000
+04494990 00095F00
+044949EC 80C23A60
+044949F0 00180000
+
+PATCH
+7FFCFB78 3D8080C2
+A18C4314 3BA05F65
+TO
+7FFCFB78 3D8080C3
+A18CD114 3BA05F65
+# End of Individual Stock Icons fix.
+
+
+# File patch code mods:
+
+# This loads files from disc instead of SD, allowing for alt stages in Project M 3.6.
+# The IF is checking for part of the alternate stage loader. 
+IF
+91620000 90E20004
+91820008 90620010
+91220014 3C607072
+60636F6A 80E10020
+
+# This tells BrawlBuilder to not add the _en suffix when copying files.
+REMOVE_EN
+
+PATCH
+065A7E00 00000070
+TO
+065A7E00 00000088
+
+PATCH
+38610088 4BA74DB9
+7C7C1B78 2C030000
+4082000C 38210080
+4800001C B8410008
+38210080 4BE524E5
+38610008 4BA742E1
+7C7C1B78 4BA741E8
+TO
+38610088 80830000
+3884000C 90830000
+4BA742FD 7C7C1B78
+2C030000 4082000C
+38210080 48000028
+B8410008 38210080
+4BE524D9 38610008
+80830000 3884FFF4
+90830000 4BA742C9
+7C7C1B78 4BA741D0
+
+ENDIF
+
+# This makes the /sfx/ files load from DVD instead of SD.
+# First IF is for the Project M version of the soundbank engine.
+IF
+2F70726F 6A656374
+6D2F7066 2F736678
+
+PATCH
+90810018 3880FFFF
+9081001C 38610020
+90610008 7CE43B78
+38A00080 4BE529F5
+38610008 4BA752A1
+TO
+90810018 38800000
+9081001C 38610020
+90610008 7CE43B78
+38A00080 4BE529F5
+38610008 4BA747F1
+
+PATCH
+60847D18 7F45D378
+TO
+60847D24 7F45D378
+
+ENDIF
+
+# And this one is for the regular soundbank engine.
+IF
+2F525342 452F7066
+2F736678
+
+PATCH
+90810018 3880FFFF
+9081001C 38610020
+90610008 7CE43B78
+38A00080 4BE529F5
+38610008 4BA752A1
+TO
+90810018 38800000
+9081001C 38610020
+90610008 7CE43B78
+38A00080 4BE529F5
+38610008 4BA747F1
+
+PATCH
+60847D18 7F45D378
+TO
+60847D30 7F45D378
+
+ENDIF
+# End of File Patch Code mods.
+
+### Make sure you have a blank line somewhere after the final statement.

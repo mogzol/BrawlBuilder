@@ -54,7 +54,7 @@ namespace BrawlBuilder
 			exit.Invalidate();
 			Update();
 
-			for (double i = Opacity; i < 1; i += 0.01)
+			for (double i = Opacity; i <= 1; i += 0.01)
 			{
 				Opacity = i;
 				Thread.Sleep(8);
@@ -180,19 +180,22 @@ namespace BrawlBuilder
 				return;
 			}
 
-			if (modFolder.Text != "" && !Directory.Exists(modFolder.Text))
+			if (modFolder.Text != "")
 			{
-				MessageBox.Show("Mod folder location is invalid", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
-			}
-
-			string[] brawlFolders = {"effect", "fighter", "game", "info", "info2", "item", "item_gen", "menu", "menu2", "minigame", "module", "movie", "net", "sound", "stage", "system", "toy"};
-			if (!Directory.GetDirectories(modFolder.Text).Any(d => brawlFolders.Contains(new DirectoryInfo(d).Name)))
-			{
-				DialogResult badfolder = MessageBox.Show("It doesn't look like the mod folder you selected contains any replacement Brawl files, are you sure you selected the right foler? Usually it will be called 'pf'.\n\nDo you still want to attempt the build using the selected folder?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-				if (badfolder == DialogResult.No)
+				if (!Directory.Exists(modFolder.Text))
+				{
+					MessageBox.Show("Mod folder location is invalid", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
+				}				
+
+				string[] brawlFolders = { "effect", "fighter", "game", "info", "info2", "item", "item_gen", "menu", "menu2", "minigame", "module", "movie", "net", "sound", "stage", "system", "toy" };
+				if (!Directory.GetDirectories(modFolder.Text).Any(d => brawlFolders.Contains(new DirectoryInfo(d).Name)))
+				{
+					DialogResult badfolder = MessageBox.Show("It doesn't look like the mod folder you selected contains any replacement Brawl files, are you sure you selected the right foler? Usually it will be called 'pf'.\n\nDo you still want to attempt the build using the selected folder?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+					if (badfolder == DialogResult.No)
+						return;
+				}
 			}
 
 			if (gctFile.Text != "" && !File.Exists(gctFile.Text))
@@ -201,9 +204,9 @@ namespace BrawlBuilder
 				return;
 			}
 
-			if (customID.Checked && !Regex.IsMatch(gameID.Text, "^[a-zA-Z0-9_]{6}$"))
+			if (customID.Checked && !Regex.IsMatch(gameID.Text, "^[A-Z0-9_]{6}$"))
 			{
-				MessageBox.Show("Game ID must be 6 characters and be made up of some combination of A-Z, 0-9, and underscores. No other characters are allowed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("Game ID must be 6 characters and be made up of some combination of A-Z (uppercase only), 0-9, and underscores. No other characters are allowed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 

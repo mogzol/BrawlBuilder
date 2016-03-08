@@ -13,10 +13,13 @@ namespace BrawlBuilder
 {
 	partial class BrawlBuilder
 	{
-		private bool _pm36patches = false;
+		private bool _remove_en;
 
 		private void buildWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
+			// Don't remove the _en suffix by default
+			_remove_en = false;
+			
 			// Set up wit
 			bool showWit = Environment.GetCommandLineArgs().Contains("--show-wit");
 
@@ -62,11 +65,16 @@ namespace BrawlBuilder
 			}
 
 			// STAGE 1: Analyze GCT
-			if (!Analyze())
+			File.Delete(@"./Resources/temp.gct"); // Make sure any leftover gct gets removed
+			if (!Environment.GetCommandLineArgs().Contains("--no-gct-patch"))
 			{
-				e.Cancel = true;
-				return;
+				if (!Analyze())
+				{
+					e.Cancel = true;
+					return;
+				}
 			}
+
 
 			// STAGE 2: Extract Brawl
 			if (!Extract(pStartInfo))
@@ -141,18 +149,26 @@ namespace BrawlBuilder
 		{
 			SetStatus("Analyzing...");
 
-			if (File.Exists(@".\Resources\ProjM36Patches.txt"))
+			if (File.Exists(@".\Resources\CodePatches.txt"))
 			{
 				// First we'll read the patches we are going to make
-				string[] actions = { "CHECK", "REMOVE", "PATCH", "TO" };
+				string[] actions = { "REMOVE", "PATCH", "TO", "IF", "ENDIF", "REMOVE_EN" };
 				string action = "";
+				bool doActions = true;
 
-				string check = "";
-				List<string> remove = new List<string>();
-				List<string> patch = new List<string>();
-				List<string> to = new List<string>();
+				string bytesString = "";
+				string patchBytesString = "";
 
-				foreach (string s in File.ReadLines(@".\Resources\ProjM36Patches.txt"))
+				int removes = 0;
+				int successfulRemoves = 0;
+
+				int patches = 0;
+				int successfulPatches = 0;
+				
+				// Load GCT into memory
+				byte[] gctBytes = File.ReadAllBytes(gctFile.Text);
+
+				foreach (string s in File.ReadLines(@".\Resources\CodePatches.txt"))
 				{
 					string line = s.Trim();
 
@@ -161,142 +177,117 @@ namespace BrawlBuilder
 
 					if (actions.Contains(line))
 					{
-						action = line;
-
-						switch (action)
+						// Handle one-liner statements. These don't affect action
+						if (line == "ENDIF")
 						{
-							case "CHECK":
-								check = ""; // There should only be 1 check
-								break;
-							case "REMOVE":
-								remove.Add("");
-								break;
-							case "PATCH":
-								patch.Add("");
-								break;
-							case "TO":
-								to.Add("");
-								break;
+							doActions = true; // 'IF' statement is over, start doing actions again (if they were ever stopped)
+							continue;
 						}
+						else if (line == "REMOVE_EN" && doActions)
+						{
+							_remove_en = true;
+							continue;
+						}
+							
+
+						action = line;
 
 						continue;
 					}
 
+					if (!doActions)
+						continue; // If we aren't doing actions just keep looping until the 'ENDIF'
+
+					// Handle multi-line statements
 					switch (action)
 					{
-						case "CHECK":
-							if (line == "")
+						case "IF":
+							if (line == "") // Blank line means end of codes block, so we can handle the 'IF' statement now.
+							{
 								action = "";
+
+								if (bytesString.Length > 0)
+								{
+									byte[] bytes = Enumerable.Range(0, bytesString.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(bytesString.Substring(x, 2), 16)).ToArray();
+									if (SearchBytes(gctBytes, bytes) < 1)
+										doActions = false; // If code wasn't found, stop doing actions until the 'ENDIF' statement
+								}
+
+								bytesString = "";
+							}
 							else
-								check += line.Replace(" ", "");
+								bytesString += line.Replace(" ", "");
 							break;
 						case "REMOVE":
 							if (line == "")
+							{
 								action = "";
+
+								if (bytesString.Length > 0)
+								{
+									removes++;
+									byte[] bytes = Enumerable.Range(0, bytesString.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(bytesString.Substring(x, 2), 16)).ToArray();
+									int index = SearchBytes(gctBytes, bytes);
+									if (index >= 0)
+									{
+										IEnumerable<byte> before = gctBytes.Take(index);
+										IEnumerable<byte> after = gctBytes.Skip(index + bytes.Length);
+
+										gctBytes = before.Concat(after).ToArray();
+										successfulRemoves++;
+									}
+
+									bytesString = "";
+								}
+							}
 							else
-								remove[remove.Count - 1] += line.Replace(" ", "");
+								bytesString += line.Replace(" ", "");
 							break;
 						case "PATCH":
 							if (line == "")
-								action = "";
+								action = ""; // Patch is done after next 'TO'
 							else
-								patch[patch.Count - 1] += line.Replace(" ", "");
+								patchBytesString += line.Replace(" ", "");
 							break;
 						case "TO":
 							if (line == "")
+							{
 								action = "";
+
+								if (bytesString.Length > 0 && patchBytesString.Length > 0)
+								{
+									patches++;
+									byte[] patchBytes = Enumerable.Range(0, patchBytesString.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(patchBytesString.Substring(x, 2), 16)).ToArray();
+									byte[] bytes = Enumerable.Range(0, bytesString.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(bytesString.Substring(x, 2), 16)).ToArray();
+									int index = SearchBytes(gctBytes, patchBytes);
+									if (index >= 0)
+									{
+										IEnumerable<byte> before = gctBytes.Take(index);
+										IEnumerable<byte> after = gctBytes.Skip(index + patchBytes.Length);
+
+										gctBytes = before.Concat(bytes.Concat(after)).ToArray();
+
+										successfulPatches++;
+									}
+
+									bytesString = "";
+									patchBytesString = "";
+								}
+							}
 							else
-								to[to.Count - 1] += line.Replace(" ", "");
+								bytesString += line.Replace(" ", "");
 							break;
 					}
 				}
 
-				// Make sure patch has the same number of elements as to
-				if (patch.Count != to.Count)
-				{
-					DialogResult result = MessageBox.Show("ProjM36Patches.txt contains unequal amounts of PATCH and TO statements. Do you want to continue without GCT patching? If your mod is Project M 3.6 or greater, the output ISO may not work without this.", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-					if (result == DialogResult.No)
-						buildWorker.CancelAsync();
-					else
-						return true;
-
-					if (buildWorker.CancellationPending)
-						return false;
-				}
-
-				// Convert strings of hex values to byte arrays (http://stackoverflow.com/a/321404/1687909)
-				byte[] checkBytes = Enumerable.Range(0, check.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(check.Substring(x, 2), 16)).ToArray();
-				List<byte[]> removeBytes = new List<byte[]>();
-				foreach (string hexBytes in remove)
-					removeBytes.Add(Enumerable.Range(0, hexBytes.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(hexBytes.Substring(x, 2), 16)).ToArray());
-
-				List<byte[]> patchBytes = new List<byte[]>();
-				foreach (string hexBytes in patch)
-					patchBytes.Add(Enumerable.Range(0, hexBytes.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(hexBytes.Substring(x, 2), 16)).ToArray());
-
-				List<byte[]> toBytes = new List<byte[]>();
-				foreach (string hexBytes in to)
-					toBytes.Add(Enumerable.Range(0, hexBytes.Length).Where(x => x % 2 == 0).Select(x => Convert.ToByte(hexBytes.Substring(x, 2), 16)).ToArray());
-
-				// Load GCT into memory
-				byte[] gctBytes = File.ReadAllBytes(gctFile.Text);
-
-				// Check for 3.6
-				int index = SearchBytes(gctBytes, checkBytes);
-				if (index > 0)
-				{
-					DialogResult r = MessageBox.Show("Project M 3.6 codes detected. This may cause issues with the output ISO. Would you like the program to attempt to fix known problem codes?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-					if (r == DialogResult.Yes)
-						_pm36patches = true;
-					else
-						return true;
-				}
-				else
-				{
-					return true; // Not 3.6, don't need to patch gct.
-				}
-
-				// Do removes
-				int successfulRemoves = 0;
-				foreach (byte[] removeArr in removeBytes)
-				{
-					index = SearchBytes(gctBytes, removeArr);
-					if (index > 0)
-					{
-						IEnumerable<byte> before = gctBytes.Take(index);
-						IEnumerable<byte> after = gctBytes.Skip(index + removeArr.Length);
-
-						gctBytes = before.Concat(after).ToArray();
-						successfulRemoves++;
-					}
-				}
-
-				// Do patches
-				int successfulPatches = 0;
-				for (int i = 0; i < patch.Count; i++)
-				{
-					index = SearchBytes(gctBytes, patchBytes[i]);
-					if (index > 0)
-					{
-						IEnumerable<byte> before = gctBytes.Take(index);
-						IEnumerable<byte> after = gctBytes.Skip(index + patchBytes[i].Length);
-
-						gctBytes = before.Concat(toBytes[i].Concat(after)).ToArray();
-
-						successfulPatches++;
-					}
-				}
-
-				if (successfulRemoves < remove.Count || successfulPatches < patch.Count)
-					MessageBox.Show("There were issues fixing known problem codes:\n\nRemoved codes: " + successfulRemoves + "/" + remove.Count + "\nPatched Codes: " + successfulPatches + "/" + patch.Count + "\n\nThere may be issues with the output ISO.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				if (Environment.GetCommandLineArgs().Contains("--notify-gct-patch"))
+					MessageBox.Show("Removed codes: " + successfulRemoves + "/" + removes + "\nPatched Codes: " + successfulPatches + "/" + patches + "\nRemove '_en': " + _remove_en, "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
 				File.WriteAllBytes(@".\Resources\temp.gct", gctBytes);
 			}
 			else
 			{
-				DialogResult result = MessageBox.Show("ProjM36Patches.txt not found. Do you want to continue without GCT patching? If your mod is Project M 3.6 or greater, the output ISO may not work without this.", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+				DialogResult result = MessageBox.Show("CodePatches.txt not found. Do you want to continue without GCT patching? The output ISO may not work without this.", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
 				if (result == DialogResult.No)
 					buildWorker.CancelAsync();
@@ -478,7 +469,7 @@ namespace BrawlBuilder
 			if (Directory.Exists(modFolder.Text))
 			{
 				SetStatus("Copying...");
-				
+
 				// Get mod files in alphabetical order (makes alt stage checking easy)
 				string[] modFilesAbsolute = Directory.GetFiles(modFolder.Text, "*", SearchOption.AllDirectories);
 				Array.Sort(modFilesAbsolute);
@@ -519,14 +510,14 @@ namespace BrawlBuilder
 					Directory.CreateDirectory(@"ssbb.d\files" + Path.GetDirectoryName(relativeFile)); // Just in case it doesn't already exist
 
 					// If we are doing alt stage, then code has been patched and we don't need the _en files
-					if (!_pm36patches)
-					{
-						File.Copy(absoluteFile, needs_en ? @"ssbb.d\files" + relativeFile_en : @"ssbb.d\files" + relativeFile, true);
-					}
-					else
+					if (_remove_en)
 					{
 						File.Copy(absoluteFile, @"ssbb.d\files" + relativeFile, true);
 						File.Delete(@"ssbb.d\files" + relativeFile_en); // Get rid of those pesky space-wasting _en files, we don't need em here
+					}
+					else
+					{
+						File.Copy(absoluteFile, needs_en ? @"ssbb.d\files" + relativeFile_en : @"ssbb.d\files" + relativeFile, true);
 					}
 
 					_progress++;
@@ -547,8 +538,9 @@ namespace BrawlBuilder
 				while (blinker.IsBusy)
 					Thread.Sleep(100);
 
-				// If we are doing alt stages, base stage files need to be padded to be the same size as their largest alt stage
-				if (_pm36patches)
+				// Base stage files need to be padded to be the same size as their largest alt stage
+				// If there aren't alt stages this will do nothing
+				if (!Environment.GetCommandLineArgs().Contains("--no-alt-pad"))
 				{
 					string[] stages = Directory.GetFiles(@"ssbb.d\files\stage\melee");
 
@@ -567,7 +559,7 @@ namespace BrawlBuilder
 							IEnumerable<string> altStages = stages.Where(s => Regex.IsMatch(s, filename + @"_[A-Z]\.pac$", RegexOptions.IgnoreCase));
 
 							// Determine the largest one (resharper converted my foreach loop. LINQ is cool.)
-							long largest = altStages.Select(altStage => new FileInfo(altStage).Length).Concat(new long[] {0}).Max();
+							long largest = altStages.Select(altStage => new FileInfo(altStage).Length).Concat(new long[] { 0 }).Max();
 
 							// If base stage is smaller, add padding to match largest alt stage
 							long baseStageSize = new FileInfo(stage).Length;
@@ -640,7 +632,7 @@ namespace BrawlBuilder
 			string patchArgs = "";
 			string gct = gctFile.Text;
 
-			if (_pm36patches)
+			if (File.Exists(@".\Resources\temp.gct"))
 				gct = @".\Resources\temp.gct";
 
 			if (File.Exists(gct))
@@ -781,11 +773,15 @@ namespace BrawlBuilder
 							if (curStatus == null)
 							{
 								// This should only happen if p is killed, but just in case
-								p.Kill();
-								p.WaitForExit(5000);
+								if (!p.HasExited)
+								{
+									p.Kill();
+									p.WaitForExit(5000);
+								}
+
 								break;
 							}
-							
+
 							Match m = r.Match(curStatus);
 
 							if (m.Groups.Count > 1)
@@ -797,8 +793,11 @@ namespace BrawlBuilder
 								blinker.CancelAsync();
 
 								// Kill process
-								p.Kill();
-								p.WaitForExit(5000);
+								if (!p.HasExited)
+								{
+									p.Kill();
+									p.WaitForExit(5000);
+								}
 
 								// Didn't finish working, delete ssbb.d
 								DeleteBrawlFolder();
@@ -887,11 +886,11 @@ namespace BrawlBuilder
 			if (e.Cancelled != true)
 				MessageBox.Show("Build Completed!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
-		
+
 		private void blinker_DoWork(object sender, DoWorkEventArgs e)
 		{
 			string statusBack = _curStatus;
-			
+
 			while (true)
 			{
 				// 'Sleep' for ~2000ms, but cancel faster
