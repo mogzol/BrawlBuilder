@@ -170,10 +170,7 @@ namespace BrawlBuilder
 
 				foreach (string s in File.ReadLines(@".\Resources\CodePatches.txt"))
 				{
-					string line = s.Trim();
-
-					if (line.StartsWith("#"))
-						continue; // ignore comments
+					string line = s.Trim().Substring(0, s.IndexOf('#') < 0 ? s.Length : s.IndexOf('#')); // Trim whitespace, ignore comments
 
 					if (actions.Contains(line))
 					{
