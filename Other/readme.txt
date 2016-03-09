@@ -88,8 +88,7 @@ if it doesn't, just copy it manually.
 1.1:
  - Improve error messages, most of them should now actually be somewhat helpful
  - Fix "Build Completed" sometimes appearing even if the build did not complete properly
- - Add the --show-wit-debug option to show wit windows and keep them open after wit finishes, in order to figure
-   out what is going wrong
+ - Add the --show-wit-debug option to show wit windows and keep them open after wit closes
  - Modify the help text for the Brawl ISO to clarify how the ssbb.d folder works
  - Fix crash if building with no GCT selected
  - Other code cleanup and misc. fixes
