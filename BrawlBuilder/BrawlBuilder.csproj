@@ -58,6 +58,7 @@
     <Compile Include="BrawlBuilder.WorkerCode.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FlexibleMessageBox.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="BrawlBuilder.resx">

@@ -80,7 +80,7 @@ namespace BrawlBuilder
 
 		private void brawlIso_lbl_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			MessageBox.Show("Select your unmodded Brawl disk image. This can be an ISO, CISO, WBFS, WBI, WIA, or WDF file\n\nNote: If there is an ssbb.d folder containing all of Brawl's files in the same folder as this application, then this field is unnecessary.", "Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show("Select your unmodded Brawl disk image. This can be an ISO, CISO, WBFS, WBI, WIA, or WDF file\n\nNote: If you have a folder containing all of Brawl's files extracted using wit, then you can also just copy the contents of that folder to an 'ssbb.d' folder in the same directory as BrawlBuilder, and this field will be unnecessary.", "Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
 		private void brawlIsoBrowse_Click(object sender, EventArgs e)

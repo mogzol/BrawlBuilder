@@ -8,12 +8,28 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using JR.Utils.GUI.Forms;
 
 namespace BrawlBuilder
 {
 	partial class BrawlBuilder
 	{
+		private enum State
+		{
+			Analyze,
+			Extract,
+			Verify,
+			DeleteSSE,
+			CopyModFiles,
+			CopyBanner,
+			Patch,
+			Build,
+			Finish
+		}
+
 		private bool _remove_en;
+		private bool _showWit;
+		private State _state;
 
 		private void buildWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
@@ -21,14 +37,15 @@ namespace BrawlBuilder
 			_remove_en = false;
 			
 			// Set up wit
-			bool showWit = Environment.GetCommandLineArgs().Contains("--show-wit");
+			_showWit = Environment.GetCommandLineArgs().Contains("--show-wit") || Environment.GetCommandLineArgs().Contains("--show-wit-debug");
 
 			if (!File.Exists(@".\Resources\wit\wit.exe"))
 				StopWorker("Unable to find wit executable, stopping build...");
 			ProcessStartInfo pStartInfo = new ProcessStartInfo(@".\Resources\wit\wit.exe");
-			pStartInfo.CreateNoWindow = !showWit;
-			pStartInfo.UseShellExecute = showWit;
-			pStartInfo.RedirectStandardOutput = !showWit;
+			pStartInfo.CreateNoWindow = !_showWit;
+			pStartInfo.UseShellExecute = _showWit;
+			pStartInfo.RedirectStandardOutput = !_showWit;
+			pStartInfo.RedirectStandardError = !_showWit;
 
 			if (buildWorker.CancellationPending)
 			{
@@ -64,81 +81,102 @@ namespace BrawlBuilder
 				return;
 			}
 
-			// STAGE 1: Analyze GCT
 			File.Delete(@"./Resources/temp.gct"); // Make sure any leftover gct gets removed
-			if (!Environment.GetCommandLineArgs().Contains("--no-gct-patch"))
+
+			// Set state to the starting state
+			_state = State.Analyze;
+
+			while (_state != State.Finish)
 			{
-				if (!Analyze())
+				switch (_state)
 				{
-					e.Cancel = true;
-					return;
+					case State.Analyze:
+						if (gctFile.Text != "" && !Environment.GetCommandLineArgs().Contains("--no-gct-patch"))
+						{
+							if (!Analyze())
+							{
+								e.Cancel = true;
+								return;
+							}
+						}
+						_state = State.Extract;
+						break;
+
+					case State.Extract:
+						if (!Extract(pStartInfo))
+						{
+							e.Cancel = true;
+							return;
+						}
+						_state = State.Verify;
+						break;
+
+					case State.Verify:
+						if (!Verify())
+						{
+							e.Cancel = true;
+							return;
+						}
+						_state = State.DeleteSSE;
+						break;
+
+					case State.DeleteSSE:
+						if (removeSubspace.Checked)
+						{
+							if (!DeleteSSE())
+							{
+								e.Cancel = true;
+								return;
+							}
+						}
+						_state = State.CopyModFiles;
+						break;
+
+					case State.CopyModFiles:
+						if (modFolder.Text != "")
+						{
+							if (!CopyModFiles())
+							{
+								e.Cancel = true;
+								return;
+							}
+						}
+						_state = State.CopyBanner;
+						break;
+
+					case State.CopyBanner:
+						if (customBanner.Checked)
+						{
+							if (!CopyBanner())
+							{
+								e.Cancel = true;
+								return;
+							}
+						}
+						_state = State.Patch;
+						break;
+
+					case State.Patch:
+						if (gctFile.Text != "" || customID.Checked)
+						{
+							if (!Patch(pStartInfo))
+							{
+								e.Cancel = true;
+								return;
+							}
+						}
+						_state = State.Build;
+						break;
+
+					case State.Build:
+						if (!Build(pStartInfo))
+						{
+							e.Cancel = true;
+							return;
+						}
+						_state = State.Finish;
+						break;
 				}
-			}
-
-
-			// STAGE 2: Extract Brawl
-			if (!Extract(pStartInfo))
-			{
-				e.Cancel = true;
-				return;
-			}
-
-
-			// STAGE 3: Verify files
-			if (!Verify())
-			{
-				e.Cancel = true;
-				return;
-			}
-
-
-			// STAGE 4: Delete Subspace Emissary
-			if (removeSubspace.Checked)
-			{
-				if (!DeleteSSE())
-				{
-					e.Cancel = true;
-					return;
-				}
-			}
-
-
-			// STAGE 5: Apply mod files
-			if (modFolder.Text != "")
-			{
-				if (!CopyModFiles())
-				{
-					e.Cancel = true;
-					return;
-				}
-			}
-
-
-			// STAGE 6: Apply banner
-			if (customBanner.Checked)
-			{
-				if (!CopyBanner())
-				{
-					e.Cancel = true;
-					return;
-				}
-			}
-
-			// STAGE 7: Patch main.dol
-			if (gctFile.Text != "" || customID.Checked)
-			{
-				if (!Patch(pStartInfo))
-				{
-					e.Cancel = true;
-					return;
-				}
-			}
-
-			// STAGE 8: Build Brawl
-			if (!Build(pStartInfo))
-			{
-				e.Cancel = true;
-				return;
 			}
 
 			// Clean up
@@ -185,7 +223,6 @@ namespace BrawlBuilder
 							_remove_en = true;
 							continue;
 						}
-							
 
 						action = line;
 
@@ -340,23 +377,8 @@ namespace BrawlBuilder
 				// Extract brawl to ssbb.d folder
 				pStartInfo.Arguments = "extract \"" + brawlIso.Text + "\" ssbb.d --psel=DATA -1ovv";
 
-				if (pStartInfo.RedirectStandardOutput)
-				{
-					if (!DoWitWithProgress(pStartInfo))
-						return false;
-				}
-				else
-				{
-					// --show-wit option was set
-					Process p = Process.Start(pStartInfo);
-					p.WaitForExit();
-
-					// Check wit exit code
-					if (p.ExitCode != 0)
-						StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build...");
-
-					p.Dispose();
-				}
+				if (!DoWit(pStartInfo))
+					return false;
 			}
 
 			if (!Directory.Exists("ssbb.d"))
@@ -678,13 +700,9 @@ namespace BrawlBuilder
 				SetStatus("Patching...");
 
 				pStartInfo.Arguments = "dolpatch ssbb.d/sys/main.dol" + patchArgs;
-				Process p = Process.Start(pStartInfo);
-				p.WaitForExit();
 
-				if (p.ExitCode != 0)
-					StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build...");
-
-				p.Dispose();
+				if (!DoWit(pStartInfo, true))
+					return false;
 			}
 
 			if (buildWorker.CancellationPending)
@@ -712,51 +730,33 @@ namespace BrawlBuilder
 
 			pStartInfo.Arguments = "copy ssbb.d \"" + _saveFileName + "\" -ovv" + (splitOutput ? "z" : "") + (customID.Checked ? " --id=" + gameID.Text : "") + (cutomTitle.Checked ? " --name \"" + gameTitle.Text + "\"" : "");
 
-			if (pStartInfo.RedirectStandardOutput)
-			{
-				if (!DoWitWithProgress(pStartInfo))
-					return false;
-			}
-			else
-			{
-				// --show-wit option set
-				Process p = Process.Start(pStartInfo);
-				p.WaitForExit();
-
-				// Check wit exit code
-				if (p.ExitCode != 0)
-					StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build...");
-
-				p.Dispose();
-			}
-
-			// Make sure wit created the file
-			if (!File.Exists(_saveFileName))
-				StopWorker("Build failed, stopping...");
+			if (!DoWit(pStartInfo))
+				return false;
 
 			return true;
 		}
 
-		private bool DoWitWithProgress(ProcessStartInfo pStartInfo)
+		private bool DoWit(ProcessStartInfo pStartInfo, bool forceNoProgress = false)
 		{
-			// Set up blinker
-			_progress = 0;
-			_progressMax = 100;
-			if (blinker.IsBusy)
+			// Determine if we want wit to be hidden or not
+			if (!_showWit && !forceNoProgress)
 			{
-				blinker.CancelAsync();
-				while (blinker.IsBusy)
+				// Set up blinker
+				_progress = 0;
+				_progressMax = 100;
+				if (blinker.IsBusy)
 				{
-					Thread.Sleep(100);
+					blinker.CancelAsync();
+					while (blinker.IsBusy)
+					{
+						Thread.Sleep(100);
+					}
 				}
-			}
-			blinker.RunWorkerAsync();
+				blinker.RunWorkerAsync();
 
-			// Create outside of loop for better performance
-			Regex r = new Regex(@"(\d+)%");
+				// Create outside of loop for better performance
+				Regex r = new Regex(@"(\d+)%");
 
-			if (pStartInfo.RedirectStandardOutput)
-			{
 				using (Process p = Process.Start(pStartInfo))
 				{
 					using (StreamReader reader = p.StandardOutput)
@@ -773,7 +773,7 @@ namespace BrawlBuilder
 								if (!p.HasExited)
 								{
 									p.Kill();
-									p.WaitForExit(5000);
+									p.WaitForExit();
 								}
 
 								break;
@@ -793,7 +793,7 @@ namespace BrawlBuilder
 								if (!p.HasExited)
 								{
 									p.Kill();
-									p.WaitForExit(5000);
+									p.WaitForExit();
 								}
 
 								// Didn't finish working, delete ssbb.d
@@ -806,9 +806,54 @@ namespace BrawlBuilder
 						}
 					}
 
+					string error = "";
+					using (StreamReader s = p.StandardError)
+					{
+						error = s.ReadToEnd();
+					}
+
 					// Check wit exit code
 					if (p.ExitCode != 0)
-						StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build...");
+					{
+						StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build..." + (error.Length > 0 ? "\n\nWit error messages:\n\n" + error : ""), error.Length > 0);
+					}						
+					// If there were errors, but exit code was fine, notify the user, but let them continue
+					else if (error.Length > 0)
+					{
+						DialogResult result = FlexibleMessageBox.Show("Wit didn't exit with an error code, however it did write to the error output with the following:\n\n" + error + "\n\nDo you still want to continue the build?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+						if (result == DialogResult.No)
+							buildWorker.CancelAsync();
+					}
+				}
+			}
+			else
+			{
+				// Check if we want to keep the window open after, and handle that if we do
+				if (Environment.GetCommandLineArgs().Contains("--show-wit-debug"))
+				{
+					ProcessStartInfo newStartInfo = new ProcessStartInfo();
+					newStartInfo.FileName = "CMD.exe";
+					newStartInfo.Arguments = "/C \"\"" + pStartInfo.FileName + "\" " + pStartInfo.Arguments + " & pause & if errorlevel 1 exit -1\"";
+					pStartInfo = newStartInfo;
+				}
+
+				using (Process p = Process.Start(pStartInfo))
+				{
+					p.WaitForExit();
+					
+					if (p.ExitCode != 0)
+					{
+						if (Environment.GetCommandLineArgs().Contains("--show-wit-debug"))
+						{
+							// The exit code won't be accurate, so just say Wit closed
+							StopWorker("Wit closed unexpectedly, stopping build...");
+						}
+						else
+						{
+							StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build...");
+						}
+					}
 				}
 			}
 
@@ -843,9 +888,13 @@ namespace BrawlBuilder
 			}
 		}
 
-		private void StopWorker(string message)
+		private void StopWorker(string message, bool flex = false)
 		{
-			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			if (flex)
+				FlexibleMessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			else
+				MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
 			buildWorker.CancelAsync();
 		}
 
@@ -859,11 +908,16 @@ namespace BrawlBuilder
 
 		private void buildWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			// Clean up temp files
+			// Clean up files
 			File.Delete(@".\Resources\temp.gct");
 
 			if (_exiting)
 				Environment.Exit(1);
+
+			// Stop the blinker if it is running
+			blinker.CancelAsync();
+			while (blinker.IsBusy)
+				Thread.Sleep(100);
 
 			// Re-enable controls
 			foreach (Control c in Controls)
@@ -880,8 +934,53 @@ namespace BrawlBuilder
 			Activate();
 
 			// Show success if builder actually finished
-			if (e.Cancelled != true)
-				MessageBox.Show("Build Completed!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			if (_state == State.Finish)
+			{
+				if (File.Exists(_saveFileName))
+				{
+					MessageBox.Show("Build Completed!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				else
+				{
+					MessageBox.Show("BrawlBuilder did not encounter any errors during the build process, but the output image doesn't seem to exist, which indicates that the build did not complete successfully. Sorry about that.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+			else if (!e.Cancelled)
+			{
+				string message = "";
+				switch(_state)
+				{
+					case State.Analyze:
+						message = "Build failed due to an unknown error while patching the GCT file.";
+						break;
+					case State.Verify:
+						message = "Build failed due to an unknown error while verifiying the Brawl image.";
+						break;
+					case State.Extract:
+						message = "Build failed due to an unknown error while extracting the Brawl image.";
+						break;
+					case State.DeleteSSE:
+						message = "Build failed due to an unknown error while deleting Subspace Emissary files.";
+						break;
+					case State.CopyModFiles:
+						message = "Build failed due to an unknown error while copying mod files.";
+						break;
+					case State.CopyBanner:
+						message = "Build failed due to an unknown error while copying the custom banner.";
+						break;
+					case State.Patch:
+						message = "Build failed due to an unknown error while applying the GCT file to the Brawl image.";
+						break;
+					case State.Build:
+						message = "Build failed due to an unkonwn error while building the modded Brawl image.";
+						break;
+					default:
+						message = "Build failed due to an unknown error.";
+						break;
+				}
+
+				MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 
 		private void blinker_DoWork(object sender, DoWorkEventArgs e)
@@ -901,7 +1000,7 @@ namespace BrawlBuilder
 				if (blinker.CancellationPending)
 					break;
 
-				// 'Sleep' for ~4000ms, but also updates
+				// 'Sleep' for ~4000ms, but also update & cancel faster
 				for (int i = 0; i < 40; i++)
 				{
 					float percent = (int)((float)_progress / _progressMax * 100);

@@ -12,6 +12,9 @@ Hopefully compatibility will be improved in the future.
 `--show-wit`
 This will show the wit command line windows rather than hiding them and displaying the progress in the UI.
 
+`--show-wit-debug`
+This will do the same thing as `--show-wit`, but it will keep the wit windows open once wit closes, allowing you to read the output and figure out what is going wrong.
+
 `--no-gct-patch`
 This will disable patching of the GCT based on the CodePatches.txt file in the Resources folder. Use of this option is not recommended.
 
@@ -35,4 +38,5 @@ This will change the offset that the GCT is applied at (by default 80570000) to 
 - First of all, thanks to Wiimm for his amazing wit tool, which is used to extract, patch, and build the game images.
 - Secondly, thanks to the Dolphin team for the awesome debug mode of Dolphin, I wouldn't have been able to get alternate stages and the replacement soundbank engine working without that.
 - The folder select dialog uses Ookii dialogs, a great little library for nice looking dialogs.
+- Detailed wit error messages make use of FlexibleMessageBox by JReichert
 - And thanks to the creators of all the ISO builder scripts for Project M and the like, they are what I initially based this off of.

@@ -1,5 +1,5 @@
 ------------------------------------/
-------- BRAWLBUILDER v1.0 -------/
+------- BRAWLBUILDER v1.1 -------/
 ------------------------------/
 
 "The Ultimate Super Smash Bros Brawl ISO Builder"
@@ -30,6 +30,10 @@ There are a couple command line arguments if you want to use them, I will probab
 
 '--show-wit'
 This will show the wit command line windows rather than hiding them and displaying the progress in the UI.
+
+'--show-wit-debug'
+This will do the same thing as --show-wit, but it will keep the wit windows open once wit closes, allowing you to
+read the output and figure out what is going wrong.
 
 '--no-gct-patch'
 This will disable patching of the GCT based on the CodePatches.txt file in the Resources folder. Use of this
@@ -77,6 +81,23 @@ into the same directory as the exe file, or else nothing will work. This should 
 if it doesn't, just copy it manually.
 
 
+--------------------/
+------ Changelog --/
+------------------/
+
+1.1:
+ - Improve error messages, most of them should now actually be somewhat helpful
+ - Fix "Build Completed" sometimes appearing even if the build did not complete properly
+ - Add the --show-wit-debug option to show wit windows and keep them open after wit finishes, in order to figure
+   out what is going wrong
+ - Modify the help text for the Brawl ISO to clarify how the ssbb.d folder works
+ - Fix crash if building with no GCT selected
+ - Other code cleanup and misc. fixes
+
+1.0:
+ - Initial release
+
+
 ------------------/
 ------ Credits --/
 ----------------/
@@ -88,6 +109,8 @@ if it doesn't, just copy it manually.
   alternate stages and the replacement soundbank engine working without that.
 
 - The folder select dialog uses Ookii dialogs, a great little library for nice looking dialogs.
+
+- Detailed wit error messages make use of FlexibleMessageBox by JReichert
 
 - And thanks to the creators of all the ISO builder scripts for Project M and the like, they are what I initially
   based this off of.
