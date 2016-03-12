@@ -730,13 +730,13 @@ namespace BrawlBuilder
 
 			pStartInfo.Arguments = "copy ssbb.d \"" + _saveFileName + "\" -ovv" + (splitOutput ? "z" : "") + (customID.Checked ? " --id=" + gameID.Text : "") + (cutomTitle.Checked ? " --name \"" + gameTitle.Text + "\"" : "");
 
-			if (!DoWit(pStartInfo))
+			if (!DoWit(pStartInfo, false, true))
 				return false;
 
 			return true;
 		}
 
-		private bool DoWit(ProcessStartInfo pStartInfo, bool forceNoProgress = false)
+		private bool DoWit(ProcessStartInfo pStartInfo, bool forceNoProgress = false, bool finalize = false)
 		{
 			// Determine if we want wit to be hidden or not
 			if (!_showWit && !forceNoProgress)
@@ -778,6 +778,17 @@ namespace BrawlBuilder
 
 							if (m.Groups.Count > 1)
 								_progress = int.Parse(m.Groups[1].Value);
+
+							// During build 99% can stay up for a loooong time depending on drive speed, so switch status to Finalizing...
+							if (_progress >= 99 && finalize)
+							{
+								blinker.CancelAsync();
+								while (blinker.IsBusy)
+									Thread.Sleep(100);
+
+								SetStatus("Finalizing...");
+								finalize = false; // No need to keep setting it, once is enough
+							}
 
 							if (buildWorker.CancellationPending)
 							{
