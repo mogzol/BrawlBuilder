@@ -769,14 +769,9 @@ namespace BrawlBuilder
 
 							if (curStatus == null)
 							{
-								// This should only happen if p is killed, but just in case
-								if (!p.HasExited)
-								{
-									p.Kill();
-									p.WaitForExit();
-								}
-
-								break;
+								// Wit has probably exited, but we'll try to loop through again after a short sleep.
+								Thread.Sleep(100);
+								continue;
 							}
 
 							Match m = r.Match(curStatus);
