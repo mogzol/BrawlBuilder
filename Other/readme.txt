@@ -1,10 +1,11 @@
 ------------------------------------/
-------- BRAWLBUILDER v1.1 -------/
-------------------------------/
+------- BRAWLBUILDER v1.1.1 -------/
+----------------------------------/
 
-"The Ultimate Super Smash Bros Brawl ISO Builder"
+"The Ultimate Super Smash Bros. Brawl ISO Builder"
 
-https://github.com/mogzol/BrawlBuilder
+Author: Mogzol (aka person66)
+Source: https://github.com/mogzol/BrawlBuilder
 
 
 ----------------/
@@ -85,6 +86,10 @@ if it doesn't, just copy it manually.
 ------ Changelog --/
 ------------------/
 
+1.1.1:
+ - Possibly fix the 'wit exited with error code -1' error
+ - Add 'Finalizing...' status at end of build so it doesn't seem like build is frozen at 99%.
+ 
 1.1:
  - Improve error messages, most of them should now actually be somewhat helpful
  - Fix "Build Completed" sometimes appearing even if the build did not complete properly
