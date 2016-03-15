@@ -1,5 +1,5 @@
 ------------------------------------/
-------- BRAWLBUILDER v1.1.1 -------/
+------- BRAWLBUILDER v1.1.2 -------/
 ----------------------------------/
 
 "The Ultimate Super Smash Bros. Brawl ISO Builder"
@@ -85,8 +85,10 @@ if it doesn't, just copy it manually.
 --------------------/
 ------ Changelog --/
 ------------------/
+
 1.1.2:
  - Fix BrawlBuilder not working with custom working directories
+
 1.1.1:
  - Fix 'wit exited with error code -1' happening with almost every build for some people
  - Add 'Finalizing...' status at end of build so it doesn't seem like build is frozen at 99%
