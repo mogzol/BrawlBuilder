@@ -31,6 +31,8 @@ namespace BrawlBuilder
 		private bool _showWit;
 		private State _state;
 
+		private static string _basePath = Path.GetDirectoryName(Application.ExecutablePath);
+
 		private void buildWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
 			// Don't remove the _en suffix by default
@@ -39,9 +41,9 @@ namespace BrawlBuilder
 			// Set up wit
 			_showWit = Environment.GetCommandLineArgs().Contains("--show-wit") || Environment.GetCommandLineArgs().Contains("--show-wit-debug");
 
-			if (!File.Exists(@".\Resources\wit\wit.exe"))
+			if (!File.Exists(_basePath + @"\Resources\wit\wit.exe"))
 				StopWorker("Unable to find wit executable, stopping build...");
-			ProcessStartInfo pStartInfo = new ProcessStartInfo(@".\Resources\wit\wit.exe");
+			ProcessStartInfo pStartInfo = new ProcessStartInfo(_basePath + @"\Resources\wit\wit.exe");
 			pStartInfo.CreateNoWindow = !_showWit;
 			pStartInfo.UseShellExecute = _showWit;
 			pStartInfo.RedirectStandardOutput = !_showWit;
@@ -81,7 +83,7 @@ namespace BrawlBuilder
 				return;
 			}
 
-			File.Delete(@"./Resources/temp.gct"); // Make sure any leftover gct gets removed
+			File.Delete(_basePath + @"\Resources\temp.gct"); // Make sure any leftover gct gets removed
 
 			// Set state to the starting state
 			_state = State.Analyze;
@@ -187,7 +189,7 @@ namespace BrawlBuilder
 		{
 			SetStatus("Analyzing...");
 
-			if (File.Exists(@".\Resources\CodePatches.txt"))
+			if (File.Exists(_basePath + @"\Resources\CodePatches.txt"))
 			{
 				// First we'll read the patches we are going to make
 				string[] actions = { "REMOVE", "PATCH", "TO", "IF", "ENDIF", "REMOVE_EN" };
@@ -206,7 +208,7 @@ namespace BrawlBuilder
 				// Load GCT into memory
 				byte[] gctBytes = File.ReadAllBytes(gctFile.Text);
 
-				foreach (string s in File.ReadLines(@".\Resources\CodePatches.txt"))
+				foreach (string s in File.ReadLines(_basePath + @"\Resources\CodePatches.txt"))
 				{
 					string line = s.Trim().Substring(0, s.IndexOf('#') < 0 ? s.Length : s.IndexOf('#')); // Trim whitespace, ignore comments
 
@@ -317,7 +319,7 @@ namespace BrawlBuilder
 				if (Environment.GetCommandLineArgs().Contains("--notify-gct-patch"))
 					MessageBox.Show("Removed codes: " + successfulRemoves + "/" + removes + "\nPatched Codes: " + successfulPatches + "/" + patches + "\nRemove '_en': " + _remove_en, "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
-				File.WriteAllBytes(@".\Resources\temp.gct", gctBytes);
+				File.WriteAllBytes(_basePath + @"\Resources\temp.gct", gctBytes);
 			}
 			else
 			{
@@ -398,13 +400,13 @@ namespace BrawlBuilder
 		{
 			SetStatus("Verifying...");
 
-			if (File.Exists(@".\Resources\BrawlFileList.txt"))
+			if (File.Exists(_basePath + @"\Resources\BrawlFileList.txt"))
 			{
 				List<Tuple<string, long>> fileList = new List<Tuple<string, long>>();
 
 				// Parse BrawlFileList.txt
 				bool success = true;
-				foreach (string s in File.ReadLines(@".\Resources\BrawlFileList.txt"))
+				foreach (string s in File.ReadLines(_basePath + @"\Resources\BrawlFileList.txt"))
 				{
 					// Each line should have 1 space separating the file path from the file size
 					string[] parts = s.Split(' ');
@@ -431,7 +433,7 @@ namespace BrawlBuilder
 				{
 					foreach (Tuple<string, long> file in fileList)
 					{
-						if (!File.Exists(@".\ssbb.d\" + file.Item1) || new FileInfo(@".\ssbb.d\" + file.Item1).Length != file.Item2)
+						if (!File.Exists(@"ssbb.d\" + file.Item1) || new FileInfo(@"ssbb.d\" + file.Item1).Length != file.Item2)
 						{
 							DialogResult result = MessageBox.Show("One or more files are either missing or the wrong size in the extracted Brawl image. Do you still wish to continue?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -459,11 +461,11 @@ namespace BrawlBuilder
 
 		private bool DeleteSSE()
 		{
-			if (File.Exists(@".\Resources\SubspaceEmissaryFiles.txt"))
+			if (File.Exists(_basePath + @"\Resources\SubspaceEmissaryFiles.txt"))
 			{
 				SetStatus("Deleting SSE...");
 
-				foreach (string file in File.ReadLines(@".\Resources\SubspaceEmissaryFiles.txt"))
+				foreach (string file in File.ReadLines(_basePath + @"\Resources\SubspaceEmissaryFiles.txt"))
 				{
 					File.Delete(@"ssbb.d\files\" + file);
 				}
@@ -651,8 +653,8 @@ namespace BrawlBuilder
 			string patchArgs = "";
 			string gct = gctFile.Text;
 
-			if (File.Exists(@".\Resources\temp.gct"))
-				gct = @".\Resources\temp.gct";
+			if (File.Exists(_basePath + @"\Resources\temp.gct"))
+				gct = _basePath + @"\Resources\temp.gct";
 
 			if (File.Exists(gct))
 			{
@@ -665,7 +667,7 @@ namespace BrawlBuilder
 					if (arg.StartsWith("--offset="))
 						offset = arg.Substring(9);
 
-				patchArgs += " NEW=TEXT,80001800,10C0 LOAD=80001800,Resources/patch/codehandler.bin XML=Resources/patch/PatchCommon.xml NEW=DATA," + offset + "," + gctSize.ToString("X") + " LOAD=" + offset + ",\"" + gct + "\"";
+				patchArgs += " NEW=TEXT,80001800,10C0 LOAD=80001800,\"" + _basePath + "/Resources/patch/codehandler.bin\" XML=\"" + _basePath + "/Resources/patch/PatchCommon.xml\" NEW=DATA," + offset + "," + gctSize.ToString("X") + " LOAD=" + offset + ",\"" + gct + "\"";
 			}
 			else if (gctFile.Text != "")
 			{
@@ -915,7 +917,7 @@ namespace BrawlBuilder
 		private void buildWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
 			// Clean up files
-			File.Delete(@".\Resources\temp.gct");
+			File.Delete(_basePath + @"\Resources\temp.gct");
 
 			if (_exiting)
 				Environment.Exit(1);

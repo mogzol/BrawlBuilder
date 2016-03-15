@@ -85,10 +85,11 @@ if it doesn't, just copy it manually.
 --------------------/
 ------ Changelog --/
 ------------------/
-
+1.1.2:
+ - Fix BrawlBuilder not working with custom working directories
 1.1.1:
- - Possibly fix the 'wit exited with error code -1' error
- - Add 'Finalizing...' status at end of build so it doesn't seem like build is frozen at 99%.
+ - Fix 'wit exited with error code -1' happening with almost every build for some people
+ - Add 'Finalizing...' status at end of build so it doesn't seem like build is frozen at 99%
  
 1.1:
  - Improve error messages, most of them should now actually be somewhat helpful
