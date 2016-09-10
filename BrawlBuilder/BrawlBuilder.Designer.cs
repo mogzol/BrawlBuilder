@@ -1,4 +1,6 @@
-﻿namespace BrawlBuilder
+﻿using BrawlBuilder.Properties;
+
+namespace BrawlBuilder
 {
 	partial class BrawlBuilder
 	{
@@ -324,7 +326,7 @@
 			this.Controls.Add(this.exit);
 			this.ForeColor = System.Drawing.SystemColors.ControlText;
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.Icon = Resources.icon;
 			this.MaximumSize = new System.Drawing.Size(334, 542);
 			this.MinimizeBox = false;
 			this.MinimumSize = new System.Drawing.Size(334, 542);

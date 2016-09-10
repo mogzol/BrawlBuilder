@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using JR.Utils.GUI.Forms;
+using System.Collections.Specialized;
 
 namespace BrawlBuilder
 {
@@ -27,6 +28,35 @@ namespace BrawlBuilder
 			Finish
 		}
 
+		// Yes most of these are the same. I realized after I wrote them out it would have probably been faster to just make a few special cases, but w/e
+		private static readonly NameValueCollection pacRelMappings = new NameValueCollection
+		{
+			{"stgdonkey", "st_donkey"},         /* 75m               */     {"stgkart", "st_kart"},             /* Mario Circuit          */
+			{"stgbattlefield", "st_battle"},    /* Battlefield       */     {"stgmariopast", "st_mariopast"},   /* Mushroomy Kingdom      */
+			{"stgdxbigblue", "st_dxbigblue"},   /* Big Blue          */     {"stgnewpork", "st_newpork"},       /* New Pork City          */
+			{"stgoldin", "st_oldin"},           /* Bridge of Eldin   */     {"stgnorfair", "st_norfair"},       /* Norfair                */
+			{"stgdxzebes", "st_dxzebes"},       /* Brinstar          */     {"stgdxonett", "st_dxonett"},       /* Onett                  */
+			{"stgemblem", "st_emblem"},         /* Castle Siege      */     {"stgonlinetraining", "st_otrain"}, /* Online Training        */
+			{"stgconfigtest", "st_config"},     /* ConfigTest        */     {"stgpictchat", "st_pictchat"},     /* PictoChat              */
+			{"stgdxcorneria", "st_dxcorneria"}, /* Corneria          */     {"stgpirates", "st_pirates"},       /* Pirate Ship            */
+			{"stgdolpic", "st_dolpic"},         /* Delfino Plaza     */     {"stgdxpstadium", "st_dxpstadium"}, /* Pokémon Stadium        */
+			{"stgearth", "st_earth"},           /* Distant Planet    */     {"stgstadium", "st_stadium"},       /* Pokémon Stadium 2      */
+			{"stgedit", "st_stageedit"},        /* Edit              */     {"stgfzero", "st_fzero"},           /* Port Town Aero Dive    */
+			{"stgfinal", "st_final"},           /* Final Destination */     {"stgdxrcruise", "st_dxrcruise"},   /* Rainbow Cruise         */
+			{"stggw", "st_gw"},                 /* Flat Zone 2       */     {"stgjungle", "st_jungle"},         /* Rumble Falls           */
+			{"stgorpheon", "st_orpheon"},       /* Frigate Orpheon   */     {"stgmetalgear", "st_metalgear"},   /* Shadow Moses Island    */
+			{"stgdxgreens", "st_dxgreens"},     /* Green Greens      */     {"stgpalutena", "st_palutena"},     /* Skyworld               */
+			{"stggreenhill", "st_greenhill"},   /* Green Hill Zone   */     {"stgvillage", "st_village"},       /* Smashville             */
+			{"stghalberd", "st_halberd"},       /* Halberd           */     {"stgtengan", "st_tengan"},         /* Spear Pillar           */
+			{"stgplankton", "st_plankton"},     /* Hanenbow          */     {"stgice", "st_ice"},               /* Summit                 */
+			{"stgheal", "st_heal"},             /* Heal              */     {"stgtarget", "st_tbreak"},         /* Target Break           */
+			{"stghomerun", "st_homerun"},       /* Homerun           */     {"stgdxshrine", "st_dxshrine"},     /* Temple                 */
+			{"stgdxgarden", "st_dxgarden"},     /* Jungle Japes      */     {"stgmadein", "st_madein"},         /* WarioWare Inc.         */
+			{"stgmansion", "st_mansion"},       /* Luigi's Mansion   */     {"stgcrayon", "st_crayon"},         /* Yoshi's Island (Brawl) */
+			{"stgstarfox", "st_starfox"},       /* Lylat Cruise      */     {"stgdxyorster", "st_dxyorster"},   /* Yoshi's Island (Melee) */
+			{"stgfamicom", "st_famicom"},       /* Mario Bros.       */
+		};
+
 		private bool _remove_en;
 		private bool _showWit;
 		private State _state;
@@ -37,7 +67,7 @@ namespace BrawlBuilder
 		{
 			// Don't remove the _en suffix by default
 			_remove_en = false;
-			
+
 			// Set up wit
 			_showWit = Environment.GetCommandLineArgs().Contains("--show-wit") || Environment.GetCommandLineArgs().Contains("--show-wit-debug");
 
@@ -204,7 +234,7 @@ namespace BrawlBuilder
 
 				int patches = 0;
 				int successfulPatches = 0;
-				
+
 				// Load GCT into memory
 				byte[] gctBytes = File.ReadAllBytes(gctFile.Text);
 
@@ -489,6 +519,30 @@ namespace BrawlBuilder
 		{
 			if (Directory.Exists(modFolder.Text))
 			{
+				// If the mod contains stages (actually just alt stages) then we have to do some preparation
+				if (Directory.Exists(modFolder.Text + @"\stage\melee"))
+				{
+					SetStatus("Preparing...");
+
+					// The first thing we want to do is get a list of all alt stages included in the mod. This is to resolve the problem described here: https://github.com/mogzol/BrawlBuilder/issues/4#issuecomment-245806404
+					// We will use that list to create duplicates of the original .rel files for each alternate stage prior to copying over any files.
+					IEnumerable<string> altStages = Directory.EnumerateFiles(modFolder.Text + @"\stage\melee")
+						.Where(f => Regex.IsMatch(f, @"_[A-Z]\.pac$", RegexOptions.IgnoreCase));
+
+					foreach (string stage in altStages)
+					{
+						Regex altStageMatcher = new Regex(@"melee\" + Path.DirectorySeparatorChar + "(STG.+?)(?:_.+|LV[0-9])?(_[A-Z]).pac$", RegexOptions.IgnoreCase);
+						Match match = altStageMatcher.Match(stage);
+
+						string baseName = match.Groups[1].Value;
+						string altCode = match.Groups[2].Value;
+						string relPath = @"ssbb.d\files\module\" + pacRelMappings[baseName];
+
+						if (File.Exists(relPath + ".rel") && !File.Exists(relPath + altCode + ".rel"))
+							File.Copy(relPath + ".rel", relPath + altCode + ".rel");
+					}
+				}
+
 				SetStatus("Copying...");
 
 				// Get mod files in alphabetical order (makes alt stage checking easy)
@@ -530,7 +584,7 @@ namespace BrawlBuilder
 					// Perform copy
 					Directory.CreateDirectory(@"ssbb.d\files" + Path.GetDirectoryName(relativeFile)); // Just in case it doesn't already exist
 
-					// If we are doing alt stage, then code has been patched and we don't need the _en files
+					// If remove_en was set in the CodePatches.txt file, then remove _en suffixes
 					if (_remove_en)
 					{
 						File.Copy(absoluteFile, @"ssbb.d\files" + relativeFile, true);
@@ -565,7 +619,7 @@ namespace BrawlBuilder
 				{
 					string[] stages = Directory.GetFiles(@"ssbb.d\files\stage\melee");
 
-					SetStatus("Padding....");
+					SetStatus("Padding...");
 					_progress = 0;
 					_progressMax = stages.Length;
 					blinker.RunWorkerAsync();
@@ -580,7 +634,7 @@ namespace BrawlBuilder
 							IEnumerable<string> altStages = stages.Where(s => Regex.IsMatch(s, filename + @"_[A-Z]\.pac$", RegexOptions.IgnoreCase));
 
 							// Determine the largest one (resharper converted my foreach loop. LINQ is cool.)
-							long largest = altStages.Select(altStage => new FileInfo(altStage).Length).Concat(new long[] { 0 }).Max();
+							long largest = altStages.Select(altStage => new FileInfo(altStage).Length).DefaultIfEmpty(0).Max();
 
 							// If base stage is smaller, add padding to match largest alt stage
 							long baseStageSize = new FileInfo(stage).Length;
@@ -607,12 +661,58 @@ namespace BrawlBuilder
 							return false;
 						}
 					}
+
+					// Stop blinker before continuing
+					blinker.CancelAsync();
+					while (blinker.IsBusy)
+						Thread.Sleep(100);
 				}
 
-				// Stop blinker before continuing
-				blinker.CancelAsync();
-				while (blinker.IsBusy)
-					Thread.Sleep(100);
+				// Finally we need to clean up any extra uneeded alternate stage .rel files (since we made copies of the original for every alt stage)
+				// The way we will do this is delete any alternate .rel files that are identical to the base one (since the mod will fall back to the base one anyway)
+				IEnumerable<string> altRels = Directory.EnumerateFiles(@"ssbb.d\files\module\").Where(f => Regex.IsMatch(f, @"_[A-Z]\.rel$", RegexOptions.IgnoreCase));
+
+				if (altRels.Any())
+				{
+					SetStatus("Cleaning Up...");
+					_progress = 0;
+					_progressMax = altRels.Count();
+					blinker.RunWorkerAsync();
+
+					foreach (string altRel in altRels)
+					{
+						string filename = Path.GetFileNameWithoutExtension(altRel);
+						string baseRel = @"ssbb.d\files\module\" + filename.Remove(filename.Length - 2) + ".rel"; // Remove the _[A-Z] part to get the base rel name
+
+						FileInfo baseInfo = new FileInfo(baseRel);
+
+						if (baseInfo.Exists)
+						{
+							FileInfo altInfo = new FileInfo(altRel);
+
+							// First check if files are the same size. If yes, then check if they are identical.
+							if (baseInfo.Length == altInfo.Length && File.ReadAllBytes(baseRel).SequenceEqual(File.ReadAllBytes(altRel)))
+								File.Delete(altRel);
+						}
+
+						_progress++;
+
+						if (buildWorker.CancellationPending)
+						{
+							blinker.CancelAsync();
+
+							// Since we have been copying files in, ssbb.d is no longer a clean Brawl. Delete it.
+							DeleteBrawlFolder();
+
+							return false;
+						}
+					}
+
+					// Stop blinker before continuing
+					blinker.CancelAsync();
+					while (blinker.IsBusy)
+						Thread.Sleep(100);
+				}
 			}
 			else
 			{
@@ -824,7 +924,7 @@ namespace BrawlBuilder
 					if (p.ExitCode != 0)
 					{
 						StopWorker("Wit closed unexpectedly with exit code " + p.ExitCode + ", stopping build..." + (error.Length > 0 ? "\n\nWit error messages:\n\n" + error : ""), error.Length > 0);
-					}						
+					}
 					// If there were errors, but exit code was fine, notify the user, but let them continue
 					else if (error.Length > 0)
 					{
@@ -849,7 +949,7 @@ namespace BrawlBuilder
 				using (Process p = Process.Start(pStartInfo))
 				{
 					p.WaitForExit();
-					
+
 					if (p.ExitCode != 0)
 					{
 						if (Environment.GetCommandLineArgs().Contains("--show-wit-debug"))
@@ -956,7 +1056,7 @@ namespace BrawlBuilder
 			else if (!e.Cancelled)
 			{
 				string message = "";
-				switch(_state)
+				switch (_state)
 				{
 					case State.Analyze:
 						message = "Build failed due to an unknown error while patching the GCT file.";
