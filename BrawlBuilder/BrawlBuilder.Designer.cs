@@ -1,6 +1,4 @@
-﻿using BrawlBuilder.Properties;
-
-namespace BrawlBuilder
+﻿namespace BrawlBuilder
 {
 	partial class BrawlBuilder
 	{
@@ -41,8 +39,7 @@ namespace BrawlBuilder
 			this.gctFile_lbl = new System.Windows.Forms.LinkLabel();
 			this.gctFileBrowse = new System.Windows.Forms.Button();
 			this.gctFile = new System.Windows.Forms.TextBox();
-			this.groupBox1 = new System.Windows.Forms.GroupBox();
-			this.bannerBrowse = new System.Windows.Forms.Button();
+			this.extrasBox = new System.Windows.Forms.GroupBox();
 			this.banner = new System.Windows.Forms.TextBox();
 			this.gameTitle = new System.Windows.Forms.TextBox();
 			this.gameID = new System.Windows.Forms.TextBox();
@@ -50,11 +47,12 @@ namespace BrawlBuilder
 			this.cutomTitle = new System.Windows.Forms.CheckBox();
 			this.customID = new System.Windows.Forms.CheckBox();
 			this.removeSubspace = new System.Windows.Forms.CheckBox();
+			this.bannerBrowse = new System.Windows.Forms.Button();
 			this.build = new System.Windows.Forms.Button();
 			this.buildWorker = new System.ComponentModel.BackgroundWorker();
 			this.blinker = new System.ComponentModel.BackgroundWorker();
 			((System.ComponentModel.ISupportInitialize)(this.exit)).BeginInit();
-			this.groupBox1.SuspendLayout();
+			this.extrasBox.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// exit
@@ -174,36 +172,23 @@ namespace BrawlBuilder
 			this.gctFile.Size = new System.Drawing.Size(125, 20);
 			this.gctFile.TabIndex = 8;
 			// 
-			// groupBox1
+			// extrasBox
 			// 
-			this.groupBox1.BackColor = System.Drawing.Color.Transparent;
-			this.groupBox1.Controls.Add(this.bannerBrowse);
-			this.groupBox1.Controls.Add(this.banner);
-			this.groupBox1.Controls.Add(this.gameTitle);
-			this.groupBox1.Controls.Add(this.gameID);
-			this.groupBox1.Controls.Add(this.customBanner);
-			this.groupBox1.Controls.Add(this.cutomTitle);
-			this.groupBox1.Controls.Add(this.customID);
-			this.groupBox1.Controls.Add(this.removeSubspace);
-			this.groupBox1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-			this.groupBox1.Location = new System.Drawing.Point(12, 325);
-			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(310, 112);
-			this.groupBox1.TabIndex = 10;
-			this.groupBox1.TabStop = false;
-			this.groupBox1.Text = "Optional Extras";
-			// 
-			// bannerBrowse
-			// 
-			this.bannerBrowse.Enabled = false;
-			this.bannerBrowse.ForeColor = System.Drawing.SystemColors.ControlText;
-			this.bannerBrowse.Location = new System.Drawing.Point(227, 85);
-			this.bannerBrowse.Name = "bannerBrowse";
-			this.bannerBrowse.Size = new System.Drawing.Size(75, 22);
-			this.bannerBrowse.TabIndex = 7;
-			this.bannerBrowse.Text = "Browse...";
-			this.bannerBrowse.UseVisualStyleBackColor = true;
-			this.bannerBrowse.Click += new System.EventHandler(this.bannerBrowse_Click);
+			this.extrasBox.BackColor = System.Drawing.Color.Transparent;
+			this.extrasBox.Controls.Add(this.banner);
+			this.extrasBox.Controls.Add(this.gameTitle);
+			this.extrasBox.Controls.Add(this.gameID);
+			this.extrasBox.Controls.Add(this.customBanner);
+			this.extrasBox.Controls.Add(this.cutomTitle);
+			this.extrasBox.Controls.Add(this.customID);
+			this.extrasBox.Controls.Add(this.removeSubspace);
+			this.extrasBox.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+			this.extrasBox.Location = new System.Drawing.Point(12, 325);
+			this.extrasBox.Name = "extrasBox";
+			this.extrasBox.Size = new System.Drawing.Size(310, 112);
+			this.extrasBox.TabIndex = 10;
+			this.extrasBox.TabStop = false;
+			this.extrasBox.Text = "Optional Extras";
 			// 
 			// banner
 			// 
@@ -211,7 +196,7 @@ namespace BrawlBuilder
 			this.banner.Location = new System.Drawing.Point(121, 86);
 			this.banner.Name = "banner";
 			this.banner.Size = new System.Drawing.Size(104, 20);
-			this.banner.TabIndex = 6;
+			this.banner.TabIndex = 17;
 			// 
 			// gameTitle
 			// 
@@ -220,7 +205,7 @@ namespace BrawlBuilder
 			this.gameTitle.MaxLength = 63;
 			this.gameTitle.Name = "gameTitle";
 			this.gameTitle.Size = new System.Drawing.Size(181, 20);
-			this.gameTitle.TabIndex = 4;
+			this.gameTitle.TabIndex = 15;
 			// 
 			// gameID
 			// 
@@ -229,7 +214,7 @@ namespace BrawlBuilder
 			this.gameID.MaxLength = 6;
 			this.gameID.Name = "gameID";
 			this.gameID.Size = new System.Drawing.Size(73, 20);
-			this.gameID.TabIndex = 2;
+			this.gameID.TabIndex = 13;
 			// 
 			// customBanner
 			// 
@@ -237,7 +222,7 @@ namespace BrawlBuilder
 			this.customBanner.Location = new System.Drawing.Point(6, 88);
 			this.customBanner.Name = "customBanner";
 			this.customBanner.Size = new System.Drawing.Size(100, 17);
-			this.customBanner.TabIndex = 5;
+			this.customBanner.TabIndex = 16;
 			this.customBanner.Text = "Custom banner:";
 			this.customBanner.UseVisualStyleBackColor = true;
 			this.customBanner.CheckedChanged += new System.EventHandler(this.customBanner_CheckedChanged);
@@ -248,7 +233,7 @@ namespace BrawlBuilder
 			this.cutomTitle.Location = new System.Drawing.Point(6, 65);
 			this.cutomTitle.Name = "cutomTitle";
 			this.cutomTitle.Size = new System.Drawing.Size(114, 17);
-			this.cutomTitle.TabIndex = 3;
+			this.cutomTitle.TabIndex = 14;
 			this.cutomTitle.Text = "Change game title:";
 			this.cutomTitle.UseVisualStyleBackColor = true;
 			this.cutomTitle.CheckedChanged += new System.EventHandler(this.customTitle_CheckedChanged);
@@ -259,7 +244,7 @@ namespace BrawlBuilder
 			this.customID.Location = new System.Drawing.Point(6, 42);
 			this.customID.Name = "customID";
 			this.customID.Size = new System.Drawing.Size(109, 17);
-			this.customID.TabIndex = 1;
+			this.customID.TabIndex = 12;
 			this.customID.Text = "Change game ID:";
 			this.customID.UseVisualStyleBackColor = true;
 			this.customID.CheckedChanged += new System.EventHandler(this.customID_CheckedChanged);
@@ -270,9 +255,20 @@ namespace BrawlBuilder
 			this.removeSubspace.Location = new System.Drawing.Point(6, 19);
 			this.removeSubspace.Name = "removeSubspace";
 			this.removeSubspace.Size = new System.Drawing.Size(296, 17);
-			this.removeSubspace.TabIndex = 0;
+			this.removeSubspace.TabIndex = 11;
 			this.removeSubspace.Text = "Remove Subspace Emissary (greatly reduces output size)";
 			this.removeSubspace.UseVisualStyleBackColor = true;
+			// 
+			// bannerBrowse
+			// 
+			this.bannerBrowse.Enabled = false;
+			this.bannerBrowse.Location = new System.Drawing.Point(240, 410);
+			this.bannerBrowse.Name = "bannerBrowse";
+			this.bannerBrowse.Size = new System.Drawing.Size(75, 22);
+			this.bannerBrowse.TabIndex = 18;
+			this.bannerBrowse.Text = "Browse...";
+			this.bannerBrowse.UseVisualStyleBackColor = true;
+			this.bannerBrowse.Click += new System.EventHandler(this.bannerBrowse_Click);
 			// 
 			// build
 			// 
@@ -287,7 +283,7 @@ namespace BrawlBuilder
 			this.build.Location = new System.Drawing.Point(12, 449);
 			this.build.Name = "build";
 			this.build.Size = new System.Drawing.Size(310, 81);
-			this.build.TabIndex = 11;
+			this.build.TabIndex = 19;
 			this.build.Text = "Build ISO";
 			this.build.UseVisualStyleBackColor = false;
 			this.build.Click += new System.EventHandler(this.build_Click);
@@ -313,7 +309,6 @@ namespace BrawlBuilder
 			this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
 			this.ClientSize = new System.Drawing.Size(334, 542);
 			this.Controls.Add(this.build);
-			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.gctFile_lbl);
 			this.Controls.Add(this.gctFileBrowse);
 			this.Controls.Add(this.gctFile);
@@ -323,10 +318,12 @@ namespace BrawlBuilder
 			this.Controls.Add(this.modFolder_lbl);
 			this.Controls.Add(this.modFolderBrowse);
 			this.Controls.Add(this.modFolder);
+			this.Controls.Add(this.bannerBrowse);
 			this.Controls.Add(this.exit);
+			this.Controls.Add(this.extrasBox);
 			this.ForeColor = System.Drawing.SystemColors.ControlText;
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-			this.Icon = Resources.icon;
+			this.Icon = global::BrawlBuilder.Properties.Resources.icon;
 			this.MaximumSize = new System.Drawing.Size(334, 542);
 			this.MinimizeBox = false;
 			this.MinimumSize = new System.Drawing.Size(334, 542);
@@ -339,8 +336,8 @@ namespace BrawlBuilder
 			this.Shown += new System.EventHandler(this.Form1_Shown);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
 			((System.ComponentModel.ISupportInitialize)(this.exit)).EndInit();
-			this.groupBox1.ResumeLayout(false);
-			this.groupBox1.PerformLayout();
+			this.extrasBox.ResumeLayout(false);
+			this.extrasBox.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -358,7 +355,7 @@ namespace BrawlBuilder
 		private System.Windows.Forms.LinkLabel gctFile_lbl;
 		private System.Windows.Forms.Button gctFileBrowse;
 		private System.Windows.Forms.TextBox gctFile;
-		private System.Windows.Forms.GroupBox groupBox1;
+		private System.Windows.Forms.GroupBox extrasBox;
 		private System.Windows.Forms.CheckBox cutomTitle;
 		private System.Windows.Forms.CheckBox customID;
 		private System.Windows.Forms.CheckBox removeSubspace;

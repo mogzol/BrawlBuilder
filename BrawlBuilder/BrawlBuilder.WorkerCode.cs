@@ -29,7 +29,7 @@ namespace BrawlBuilder
 		}
 
 		// Yes most of these are the same. I realized after I wrote them out it would have probably been faster to just make a few special cases, but w/e
-		private static readonly NameValueCollection pacRelMappings = new NameValueCollection
+		private static readonly NameValueCollection pacRelMappings = new NameValueCollection()
 		{
 			{"stgdonkey", "st_donkey"},         /* 75m               */     {"stgkart", "st_kart"},             /* Mario Circuit          */
 			{"stgbattlefield", "st_battle"},    /* Battlefield       */     {"stgmariopast", "st_mariopast"},   /* Mushroomy Kingdom      */

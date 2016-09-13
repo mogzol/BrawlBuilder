@@ -23,7 +23,6 @@ namespace BrawlBuilder
 
 			// Save initial button value
 			build.Tag = _curStatus = build.Text;
-		
 		}
 
 		// For dragging the form around

@@ -1,5 +1,5 @@
 ------------------------------------/
--------- BRAWLBUILDER v1.2 --------/
+------- BRAWLBUILDER v1.2.1 -------/
 ----------------------------------/
 
 "The Ultimate Super Smash Bros. Brawl ISO Builder"
@@ -85,6 +85,10 @@ if it doesn't, just copy it manually.
 --------------------/
 ------ Changelog --/
 ------------------/
+1.2.1:
+ - Remove the BrawlBuilder.exe.config file
+ - Fix 'Custom banner' browse button appearance for certain Windows versions/themes
+
 1.2:
  - Fix some stages glitching/crashing due to improper .rel files
  
