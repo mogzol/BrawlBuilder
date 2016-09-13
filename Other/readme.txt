@@ -1,5 +1,5 @@
 ------------------------------------/
-------- BRAWLBUILDER v1.1.2 -------/
+-------- BRAWLBUILDER v1.2 --------/
 ----------------------------------/
 
 "The Ultimate Super Smash Bros. Brawl ISO Builder"
@@ -85,7 +85,9 @@ if it doesn't, just copy it manually.
 --------------------/
 ------ Changelog --/
 ------------------/
-
+1.2:
+ - Fix some stages glitching/crashing due to improper .rel files
+ 
 1.1.2:
  - Fix BrawlBuilder not working with custom working directories
 
