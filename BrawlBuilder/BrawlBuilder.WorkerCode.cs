@@ -15,6 +15,12 @@ namespace BrawlBuilder
 {
 	partial class BrawlBuilder
 	{
+		private bool _remove_en;
+		private bool _showWit;
+		private State _state;
+
+		private static string _basePath = Path.GetDirectoryName(Application.ExecutablePath);
+
 		private enum State
 		{
 			Analyze,
@@ -56,12 +62,6 @@ namespace BrawlBuilder
 			{"stgstarfox", "st_starfox"},       /* Lylat Cruise      */     {"stgdxyorster", "st_dxyorster"},   /* Yoshi's Island (Melee) */
 			{"stgfamicom", "st_famicom"},       /* Mario Bros.       */
 		};
-
-		private bool _remove_en;
-		private bool _showWit;
-		private State _state;
-
-		private static string _basePath = Path.GetDirectoryName(Application.ExecutablePath);
 
 		private void buildWorker_DoWork(object sender, DoWorkEventArgs e)
 		{

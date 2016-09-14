@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Reflection;
+using System.IO;
 
 namespace BrawlBuilder
 {
 	static class Program
 	{
-		private const string DllDir = @"Resources\";
+		private static string DllDir = Path.GetDirectoryName(Application.ExecutablePath) + @"\Resources\";
 
 		/// <summary>
 		/// The main entry point for the application.
