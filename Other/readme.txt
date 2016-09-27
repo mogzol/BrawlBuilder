@@ -1,5 +1,5 @@
 ------------------------------------/
-------- BRAWLBUILDER v1.2.2 -------/
+------- BRAWLBUILDER v1.2.3 -------/
 ----------------------------------/
 
 "The Ultimate Super Smash Bros. Brawl ISO Builder"
@@ -85,6 +85,10 @@ if it doesn't, just copy it manually.
 --------------------/
 ------ Changelog --/
 ------------------/
+1.2.3:
+ - The necessary parts of Ookii.Dialogs (i.e., the folder select dialog) are now compiled into the BrawlBuilder
+   executable, which means the external DLL is no longer required.
+
 1.2.2:
  - Fix custom working directories not working (again)
 

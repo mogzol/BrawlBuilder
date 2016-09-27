@@ -545,9 +545,8 @@ namespace BrawlBuilder
 
 				SetStatus("Copying...");
 
-				// Get mod files in alphabetical order (makes alt stage checking easy)
+				// Get absolute paths to the mod files
 				string[] modFilesAbsolute = Directory.GetFiles(modFolder.Text, "*", SearchOption.AllDirectories);
-				Array.Sort(modFilesAbsolute);
 
 				_progress = 0;
 				_progressMax = modFilesAbsolute.Length;
