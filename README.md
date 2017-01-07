@@ -10,6 +10,11 @@ Hopefully compatibility will be improved in the future.
 
 If you want to discuss BrawlBuilder, or if you have any issues, check out the official BrawlBuilder thread over on Smashboards: http://smashboards.com/threads/432675
 
+## Downloads
+BrawlBuilder can be downloaded from the releases page: https://github.com/mogzol/BrawlBuilder/releases
+
+Just grab the latest zip, extract it, and then run BrawlBuilder.exe. The app should launch and you should be good to go.
+
 ## Command line arguments
 `--show-wit`
 This will show the wit command line windows rather than hiding them and displaying the progress in the UI.
